@@ -93,11 +93,23 @@ project/
    - macOS: `brew install tesseract`
    - Linux: `apt-get install tesseract-ocr`
 
-3. Configure environment variables:
-   - Create a `.env` file in the project root with your Together.ai API key:
+3. Configure your application:
+   - Option 1: Copy the configuration template and add your credentials:
      ```
-     LLM_API_KEY=your_together_api_key_here
+     cp app/config/config_template.py app/config/config.py
+     # Edit app/config/config.py with your actual API keys and settings
      ```
+   - Option 2: Set environment variables directly or create a `.env` file:
+     ```
+     # Required environment variables
+     MILVUS_URI=your_milvus_uri
+     MILVUS_API_KEY=your_milvus_api_key
+     MILVUS_USERNAME=your_milvus_username
+     MILVUS_PASSWORD=your_milvus_password
+     LLM_API_KEY=your_together_api_key
+     ```
+
+Note: The `config.py` file contains sensitive information and is added to `.gitignore` to prevent accidental exposure of credentials.
 
 ## Usage
 

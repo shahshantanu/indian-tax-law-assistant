@@ -21,6 +21,7 @@ ENV/
 
 # Environment variables
 .env
+app/config/config.py
 
 # Milvus data
 qdrant_data/
