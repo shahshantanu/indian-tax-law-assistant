@@ -1,0 +1,15 @@
+sentence-transformers>=2.7
+qdrant-client
+fastapi
+uvicorn
+httpx
+python-dotenv
+pytest
+tqdm
+numpy
+bge-reranker-large @ git+https://github.com/FlagOpen/FlagEmbedding.git#subdirectory=reranker
+pydantic
+pymupdf
+tiktoken
+ftfy
+pymilvus 
