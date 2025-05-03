@@ -51,12 +51,24 @@ except ImportError:
     LLM_MAX_TOKENS = int(os.getenv("LLM_MAX_TOKENS", "2048"))
     LLM_TEMPERATURE = float(os.getenv("LLM_TEMPERATURE", "0.1"))
     
+    # OpenAI settings
+    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+    USE_OPENAI = os.getenv("USE_OPENAI", "false").lower() == "true"
+    
     # Document processing settings
     CHUNK_MAX_TOKENS = int(os.getenv("CHUNK_MAX_TOKENS", "500"))
     CHUNK_OVERLAP = int(os.getenv("CHUNK_OVERLAP", "50"))
     
     # Exit if required environment variables are missing
-    if not all([MILVUS_URI, MILVUS_API_KEY, MILVUS_USERNAME, MILVUS_PASSWORD, LLM_API_KEY]) and not USE_INMEMORY:
+    required_vars = []
+    if not USE_INMEMORY:
+        required_vars.extend([MILVUS_URI, MILVUS_API_KEY, MILVUS_USERNAME, MILVUS_PASSWORD])
+    if USE_OPENAI:
+        required_vars.append(OPENAI_API_KEY)
+    else:
+        required_vars.append(LLM_API_KEY)
+        
+    if not all(required_vars):
         print("ERROR: Missing required environment variables.")
         print("Please either create a config.py file or set the required environment variables.")
         sys.exit(1)
@@ -68,10 +80,18 @@ API_VERSION = "0.1.0"
 
 def get_llm_config() -> Dict[str, Any]:
     """Return the LLM configuration dictionary."""
-    return {
-        "api_base": LLM_API_BASE,
-        "model": LLM_MODEL,
-        "api_key": LLM_API_KEY,
-        "max_tokens": LLM_MAX_TOKENS,
-        "temperature": LLM_TEMPERATURE,
-    } 
+    if USE_OPENAI:
+        return {
+            "api_key": OPENAI_API_KEY,
+            "model": "gpt-4o",  # Using the latest GPT-4o model
+            "max_tokens": LLM_MAX_TOKENS,
+            "temperature": LLM_TEMPERATURE,
+        }
+    else:
+        return {
+            "api_base": LLM_API_BASE,
+            "model": LLM_MODEL,
+            "api_key": LLM_API_KEY,
+            "max_tokens": LLM_MAX_TOKENS,
+            "temperature": LLM_TEMPERATURE,
+        } 

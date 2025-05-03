@@ -18,6 +18,10 @@ LLM_API_BASE = "https://api.together.xyz/v1"
 LLM_MODEL = "meta-llama/Llama-3.3-70B-Instruct-Turbo-Free"
 LLM_API_KEY = "your-together-api-key-here"
 
+# OpenAI settings
+OPENAI_API_KEY = "your-openai-api-key-here"
+USE_OPENAI = False  # Set to True to use OpenAI instead of Together.ai
+
 # Other settings that can be customized
 DEBUG = False
 USE_INMEMORY = False

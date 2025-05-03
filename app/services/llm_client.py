@@ -1,8 +1,8 @@
 """
 LLM client service for interacting with language models.
 
-This module provides a wrapper around the OpenAI-compatible chat completion API
-for Llama 3 models via ollama or vllm.
+This module provides a wrapper around OpenAI API and OpenAI-compatible chat completion API
+for various LLM providers.
 """
 
 import json
@@ -51,7 +51,7 @@ class Tool:
 
 
 class LLMClient:
-    """Client for interacting with LLMs via OpenAI-compatible API."""
+    """Client for interacting with LLMs via OpenAI or OpenAI-compatible API."""
     
     _instance = None
     
@@ -60,6 +60,36 @@ class LLMClient:
         if cls._instance is None:
             cls._instance = super(LLMClient, cls).__new__(cls)
         return cls._instance
+    
+    def __init__(self):
+        """Initialize the LLM client with configuration from settings."""
+        self.config = settings.get_llm_config()
+        self.use_openai = settings.USE_OPENAI
+        
+    def _get_api_url(self):
+        """Get the appropriate API URL based on the current configuration."""
+        if self.use_openai:
+            return "https://api.openai.com/v1/chat/completions"
+        else:
+            return f"{settings.LLM_API_BASE}/chat/completions"
+            
+    def _get_headers(self):
+        """Get the appropriate headers based on the current configuration."""
+        headers = {"Content-Type": "application/json"}
+        
+        if self.use_openai:
+            headers["Authorization"] = f"Bearer {settings.OPENAI_API_KEY}"
+        else:
+            headers["Authorization"] = f"Bearer {settings.LLM_API_KEY}"
+            
+        return headers
+    
+    def _get_model(self):
+        """Get the appropriate model based on the current configuration."""
+        if self.use_openai:
+            return "gpt-4o"
+        else:
+            return settings.LLM_MODEL
     
     def chat(
         self,
@@ -94,7 +124,7 @@ class LLMClient:
         ]
         
         payload = {
-            "model": settings.LLM_MODEL,
+            "model": self._get_model(),
             "messages": messages,
             "temperature": temperature or settings.LLM_TEMPERATURE,
             "max_tokens": max_tokens or settings.LLM_MAX_TOKENS,
@@ -104,14 +134,8 @@ class LLMClient:
         if tools:
             payload["tools"] = [tool.to_dict() for tool in tools]
         
-        headers = {
-            "Content-Type": "application/json"
-        }
-        
-        if settings.LLM_API_KEY:
-            headers["Authorization"] = f"Bearer {settings.LLM_API_KEY}"
-        
-        url = f"{settings.LLM_API_BASE}/chat/completions"
+        headers = self._get_headers()
+        url = self._get_api_url()
         
         # Retry loop
         for attempt in range(retry_count):
@@ -174,21 +198,15 @@ class LLMClient:
         ]
         
         payload = {
-            "model": settings.LLM_MODEL,
+            "model": self._get_model(),
             "messages": messages,
             "temperature": temperature or settings.LLM_TEMPERATURE,
             "max_tokens": max_tokens or settings.LLM_MAX_TOKENS,
             "stream": True
         }
         
-        headers = {
-            "Content-Type": "application/json"
-        }
-        
-        if settings.LLM_API_KEY:
-            headers["Authorization"] = f"Bearer {settings.LLM_API_KEY}"
-        
-        url = f"{settings.LLM_API_BASE}/chat/completions"
+        headers = self._get_headers()
+        url = self._get_api_url()
         
         with httpx.Client(timeout=120) as client:
             with client.stream("POST", url, json=payload, headers=headers) as response:
